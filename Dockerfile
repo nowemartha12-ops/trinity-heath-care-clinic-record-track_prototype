@@ -1,5 +1,8 @@
 FROM php:8.2-apache
-RUN docker-php-ext-install pdo pdo_mysql mysqli
-RUN a2dismod mpm_event && a2enmod mpm_prefork rewrite
+RUN a2dismod mpm_event mpm_worker || true
+RUN a2enmod mpm_prefork rewrite headers
+RUN docker-php-ext-install mysqli pdo pdo_mysql
 COPY . /var/www/html/
-CMD sh -c "sed -i \"s/Listen 80/Listen ${PORT:-80}/\" /etc/apache2/ports.conf; sed -i \"s/:80>/:${PORT:-80}>/\" /etc/apache2/sites-available/000-default.conf; docker-php-entrypoint apache2-foreground"
+RUN chown -R www-data:www-data /var/www/html
+EXPOSE 80
+CMD ["apache2-foreground"]
